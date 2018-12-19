@@ -1,124 +1,142 @@
-import os
 import csv
-from keras.models import Sequential, Model
-from keras.layers import Lambda, Dense, Conv2D, Activation, Flatten, Cropping2D, MaxPool2D, Dropout
-import matplotlib.pyplot as plt
-
-samples = []
-with open('/opt/carnd_p3/data/driving_log.csv') as csvfile:
-    reader = csv.reader(csvfile)
-    # skipping the headers
-    next(reader, None)
-    for line in reader:
-        samples.append(line)
-
-print(len(samples))
-
-from sklearn.model_selection import train_test_split
-
-train_samples, validation_samples = train_test_split(samples, test_size=0.2)
-
 import cv2
 import numpy as np
-import sklearn
+
+from keras.models import Sequential, load_model
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Dropout
+from keras.layers.convolutional import Conv2D
+
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 
 
-def generator(samples, batch_size=32):
-    num_samples = len(samples)
-    while 1:  # Loop forever so the generator never terminates
-        sklearn.utils.shuffle(samples)
+lines = []
+def get_data(path):
+    # getting driving_log, and loading the image paths
+    with open(path+'driving_log.csv') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader,None)
+        for line in reader:
+            lines.append(line)
+    return lines
+
+def generator(data, path, batch_size = 32):
+    num_samples = len(data)
+    angle_adjustment = 0.1
+    image_path = path +'IMG/'
+    while 1:
+        data = shuffle(data)
         for offset in range(0, num_samples, batch_size):
-            batch_samples = samples[offset:offset + batch_size]
-
+            batch_samples = lines[offset:offset + batch_size]
             images = []
             angles = []
-            for batch_sample in batch_samples:
-                name = '/opt/carnd_p3/data/IMG/' + batch_sample[0].split('/')[-1]
-                # print(name)
-                center_image = cv2.imread(name)
-                center_angle = float(batch_sample[3])
-                images.append(center_image)
-                angles.append(center_angle)
+            for line in batch_samples:
+                # center image
+                # converting to RGB and adding both flipped and original
+                center_image = cv2.imread(image_path + line[0].split('/')[-1])
+                center_image_rgb = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
+                images.append(center_image_rgb)
+                angles.append(float(line[3]))
+                images.append(cv2.flip(center_image_rgb, 1))
+                angles.append(-float(line[3]))
 
-            # print(center_image.shape)
-            # trim image to only see section with road
+                # left image
+                # converting to RGB and adding both flipped and original
+                left_image = cv2.imread(image_path + line[1].split('/')[-1])
+                left_image_rgb = cv2.cvtColor(left_image, cv2.COLOR_BGR2RGB)
+                images.append(left_image_rgb)
+                angles.append(float(line[3]) + angle_adjustment)
+                images.append(cv2.flip(left_image_rgb, 1))
+                angles.append(-(float(line[3]) + angle_adjustment))
+
+                # right image
+                # converting to RGB and adding both flipped and original
+                right_image = cv2.imread(image_path + line[2].split('/')[-1])
+                right_image_rgb = cv2.cvtColor(right_image, cv2.COLOR_BGR2RGB)
+                images.append(right_image_rgb)
+                angles.append(float(line[3]) - angle_adjustment)
+                images.append(cv2.flip(right_image_rgb, 1))
+                angles.append(-(float(line[3]) - angle_adjustment))
+
+            # converting to numpy array
+            #print(len(images), len(angles))
             X_train = np.array(images)
             y_train = np.array(angles)
-            # print(X_train.shape, y_train.shape, offset)
-            yield sklearn.utils.shuffle(X_train, y_train)
-
-
-# compile and train the model using the generator function
-train_generator = generator(train_samples, batch_size=32)
-validation_generator = generator(validation_samples, batch_size=32)
-
-ch, row, col = 3, 80, 320  # Trimmed image format
-
-# Preprocess incoming data, centered around zero with small standard deviation
-
-model = Sequential()
-model.add(Cropping2D(cropping=((60, 20), (0, 0)), input_shape=(160, 320, 3)))
-model.add(Lambda(lambda x: x / 127.5 - 1.,
-                 input_shape=(row, col, ch),
-                 output_shape=(row, col, ch)))
-
-# incoming 80x320x3
-model.add(Conv2D(24, (5, 5), strides=(1, 1), padding='same'))
-model.add(MaxPool2D((2,2), padding='same'))
-model.add(Dropout(0.2))
-model.add(Activation('relu'))
-
-
-# incoming 40x180x24
-model.add(Conv2D(36, (5, 5), strides=(1, 1), padding='same'))
-model.add(MaxPool2D((2,2), padding='same'))
-model.add(Dropout(0.2))
-model.add(Activation('relu'))
-
-
-# incoming 20x90x36
-model.add(Conv2D(48, (5, 5), strides=(1, 1), padding='same'))
-model.add(MaxPool2D((2,2), padding='same'))
-model.add(Dropout(0.2))
-model.add(Activation('relu'))
-
-# incoming 10x45x48
-model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same'))
-model.add(MaxPool2D((2,2), padding='same'))
-model.add(Dropout(0.2))
-model.add(Activation('relu'))
-
-# incoming 5x22x64
-model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same'))
-model.add(MaxPool2D((2,2), padding='same'))
-model.add(Dropout(0.2))
-model.add(Activation('relu'))
-
-# incoming 3x11x64
-model.add(Flatten())
-model.add(Dense(100))
-model.add(Dense(50))
-model.add(Dense(10))
-model.add(Dense(1))
-
-model.compile(loss='mse', optimizer='adam')
-model.summary()
-history_object = model.fit_generator(train_generator, steps_per_epoch=len(train_samples),
-                                     validation_data=validation_generator, validation_steps=len(validation_samples),
-                                     epochs=1, verbose=1)
-
-print(history_object.history.keys())
-model.save('my_model.h5')
-
-# plt.plot(history_object.history['loss'])
-# plt.plot(history_object.history['val_loss'])
-# plt.title('Model Mean square error loss')
-# plt.ylabel('Mean square error loss')
-# plt.xlabel('Epoch')
-# plt.legend(['Training Set', 'Validation loss'], loc = 'upper right')
-# plt.show()
+            yield shuffle(X_train, y_train)
 
 
 
+def get_model():
+    # creating model based on NVIDIA paper
+    model = Sequential()
+    # applying normalization to the image
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160, 320, 3)))
+
+    # Cropping the image, 70 from top, 25 from bottom
+    # Input 160x320x3
+    model.add(Cropping2D(cropping=((70, 25), (0, 0))))
+
+    # Applying 24 filter of sizes (5,5) of strides of 2 with relu activation
+    # input 65x320x3
+    model.add(Conv2D(24, (5, 5), strides=(2, 2), activation='relu'))
+
+    # Applying 36 filter of sizes (5,5) of strides of 2 with relu activation
+    # input 31x158x24
+    model.add(Conv2D(36, (5, 5), strides=(2, 2), activation='relu'))
+
+    # Applying 48 filter of sizes (5,5) of strides of 2 with relu activation
+    # input 14x77x36
+    model.add(Conv2D(48, (5, 5), strides=(2, 2), activation='relu'))
+
+    # Applying 64 filter of sizes (5,5) of strides of 1 with relu activation
+    # input 5x37x48
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+
+    # Applying 64 filter of sizes (5,5) of strides of 2 with relu activation
+    # input 3x35x64
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+
+    # input 1x33x64
+    model.add(Flatten())
+
+    # input 2112
+    model.add(Dense(100))
+
+    # input 100
+    model.add(Dense(50))
+
+    # input 50
+    model.add(Dense(10))
+
+    # input 10
+    model.add(Dense(1))
+
+    # using adam optimization, and mean square error
+    model.compile('adam', 'mse')
+
+    model.summary()
+    return model
+
+path = 'C:/Users/609600403/Documents/ML/project/CarND-Behavioral-Cloning-P3-master/data/'
+
+# loading the image paths from csv
+lines = get_data(path)
+print(len(lines))
+# Splitting train and validation ,used 20% of data for validation
+train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+
+# Getting training and validation using generator function, used batch of 32
+train_generator = generator(train_samples, path, batch_size=32)
+validation_generator = generator(validation_samples, path, batch_size=32)
+
+# getting model
+model = get_model()
+# when you are loading the model
+
+#model = load_model('model-4.h5')
 
 
+# training the model using generator
+model.fit_generator(train_generator, steps_per_epoch=4*len(train_samples),validation_data=validation_generator, validation_steps=len(validation_samples),epochs=1, verbose=1)
+# Saving the model
+model.save('model-5.h5')
