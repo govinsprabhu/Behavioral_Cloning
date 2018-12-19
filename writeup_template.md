@@ -18,13 +18,10 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./images/placeholder.png "Model Visualization"
 [image2]: ./images/cnn-architecture-624x890.png "Nvidia model"
 [image3]: ./images/sample_dataset.png "Center, left, right images with their flips"
 [image4]: ./images/architecture.png "My final Architecture"
-[image5]: ./images/placeholder_small.png "Recovery Image"
-[image6]: ./images/placeholder_small.png "Normal Image"
-[image7]: ./images/placeholder_small.png "Flipped Image"
+[image5]: ./images/SampleImge.png "Sample Image"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -99,6 +96,9 @@ Here is the summary of the architecture (Not visualization)
 
 I have used data provided by the course to train the model initially, later found out the data was not suffiecient, since the model is suffering from overfitting. So I have added more data. Following additional data I have captured
 
+here is a sample image of center view
+[!image5]
+
  * Two full lap in the network 
  * One full reverse lap 
  * Recovery lap for getting car recorverd incase if it is going to side ways
@@ -106,8 +106,7 @@ I have used data provided by the course to train the model initially, later foun
  Also, I have loaded left, right data for each of the central images. For each of it, I took the vertical flip of the image for further augmentation. Below are the images. 
 
 
-![alt text][image6]
-![alt text][image7]
+![image3]
 
 
 After the collection process, and taking its left and right plus their flip images,  I had 96432  number of data points. I then preprocessed this data by using keras lambda layer, normalized it by dividing 255, then subtracting 0.5 from it. 
