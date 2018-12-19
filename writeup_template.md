@@ -34,13 +34,13 @@ The goals / steps of this project are the following:
 My project includes the following files:
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
-* model_final.h5 containing a trained convolution neural network (changed the name for clarity)
+* model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
-python drive.py model_final.h5
+python drive.py model.h5
 ```
 
 #### 3. Submission code is usable and readable
@@ -118,4 +118,4 @@ When finding out this data was too not sufficient, trained with the reverse trac
 
 I used an Adam optimizer so that manually training the learning rate wasn't necessary.
 
-After each timeI trained, I have saved the model and trained it again for the new set of data. All the model files h5 I have checked in. Final model is [model_final.h5](https://github.com/govinsprabhu/Behavioral_Cloning/blob/master/model_final.h5)
+After each timeI trained, I have saved the model and trained it again for the new set of data. All the model files h5 I have checked in. Final model is [model.h5](https://github.com/govinsprabhu/Behavioral_Cloning/blob/master/model_final.h5)
