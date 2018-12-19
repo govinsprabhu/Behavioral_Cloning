@@ -114,3 +114,5 @@ After the collection process, and taking its left and right plus their flip imag
 I finally randomly shuffled the data set and put 20% of the data into a validation set. 
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 5 as evidenced by training and validation error was not reducing further. I used an adam optimizer so that manually training the learning rate wasn't necessary.
+
+I did not trained every data at one go. Step by step, I have trained my model. Initially started with Udacity data, then as I found out the data was insuffiecient, I have added more number of laps manually. After each time, I have saved the model and trained it again for the new set of data. All the model h5 I have cheked. Final model is [model.h5](https://github.com/govinsprabhu/Behavioral_Cloning/blob/master/model_final.h5)
