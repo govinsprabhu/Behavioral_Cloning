@@ -19,9 +19,9 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./images/placeholder.png "Model Visualization"
-[image2]: ./images/placeholder.png "Grayscaling"
-[image3]: ./images/placeholder_small.png "Recovery Image"
-[image4]: ./images/placeholder_small.png "Recovery Image"
+[image2]: ./images/cnn-architecture-624x890.png "Nvidia model"
+[image3]: ./images/sample_dataset.png "Center, left, right images with their flips"
+[image4]: ./images/architecture.png "My final Architecture"
 [image5]: ./images/placeholder_small.png "Recovery Image"
 [image6]: ./images/placeholder_small.png "Normal Image"
 [image7]: ./images/placeholder_small.png "Flipped Image"
@@ -77,7 +77,9 @@ For details about how I created the training data, see the next section.
 
 The overall strategy for deriving a model architecture was to train the car to run through the road without being deviating to the side ways.
 
-My first step was to use a convolution neural network model similar to that of  [NVIDIA paper](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). I thought this model might be appropriate because they have used this model to train a real car to run through the road autonomously.
+My first step was to use a convolution neural network model similar to that of  [NVIDIA paper](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). I thought this model might be appropriate because they have used this model to train a real car to run through the road autonomously. Below is the visualization of the architecture. I have used exactly same architecture, with same filter, but different size of input image
+
+![image2]
 
 In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. Initially the difference between training and validation error was more, so decided to add dropout. But dropout was not helping me much. So I have decided to collect more data.  
 
@@ -87,12 +89,11 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 #### 2. Final Model Architecture
 
- The final model can be found in model.py file from line numbers 69 to 119 inside get_number method. It consiste of a convolution neural network with the following layers and layer sizes 
+ The final model can be found in model.py file from line numbers 69 to 119 inside get_number method. It consiste of 6 convolution neural network with the following 4 fully connected layers.
  
+Here is the summary of the architecture (Not visualization)
 
-Here is a visualization of the architecture.  
-
-![alt text][image1]
+![image4]
 
 #### 3. Creation of the Training Set & Training Process
 
